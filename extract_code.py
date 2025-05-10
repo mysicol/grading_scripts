@@ -18,22 +18,30 @@ with ZipFile(args.gradebook, "r") as gradebook_zip:
 
 # parse list of submissions
 for filename in os.listdir(target_directory):
+    # tokenize filename
+    file_tokens = filename.split("_")
+    if len(file_tokens) < 2:
+        continue
+
+    # get student ID
+    student_id = file_tokens[1]
+    student_directory = os.path.join(target_directory, student_id)
+
+    # make a directory for this student
+    if not os.path.exists(student_directory):
+        os.mkdir(student_directory)
+
+    full_filename = os.path.join(target_directory, filename)
+
     if filename.endswith(".zip"):
-        # get student ID
-        student_id = filename.split("_")[1]
-        student_directory = os.path.join(target_directory, student_id)
-
-        # make a directory for this student
-        if not os.path.exists(student_directory):
-            os.mkdir(student_directory)
-
         # unzip file submissions
-        zipfile = os.path.join(target_directory, filename)
-        with ZipFile(zipfile, "r") as student_zip:
+        with ZipFile(full_filename, "r") as student_zip:
             student_zip.extractall(path=student_directory)
 
         # remove zip file
-        os.remove(zipfile)
+        os.remove(full_filename)
     elif filename.endswith(".txt"):
         # delete grade reports
-        os.remove(os.path.join(target_directory, filename))
+        os.remove(full_filename)
+    else:
+        os.rename(full_filename, os.path.join(student_directory, filename))
